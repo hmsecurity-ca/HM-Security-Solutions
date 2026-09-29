@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f3154">
+<title>HM Security Job Scheduler</title>
+<style>
+:root{--navy:#0f3154;--bg:#eef3f8;--card:#fff;--text:#17263a;--muted:#6b7788;--line:#dbe3ec;--gold:#b9852b;--soft:#fff7e8;--danger:#a43c35}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,#0f3154,#1b4775);color:#fff;padding:18px}
+.wrap{max-width:1050px;margin:auto}.brand{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand h1{margin:0;font-size:22px}.brand p{margin:4px 0 0;font-size:13px;opacity:.8}.logo{font-size:11px;font-weight:800;border:1px solid #ffffff33;border-radius:999px;padding:8px 10px;background:#ffffff17}
+main{padding:18px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 7px 24px #19395a0d}.stat{padding:14px}.stat small{color:var(--muted);font-weight:700}.stat b{display:block;font-size:20px;margin-top:5px}
+.layout{display:grid;grid-template-columns:360px 1fr;gap:14px;align-items:start}.panel h2{font-size:16px;margin:0;padding:15px;border-bottom:1px solid var(--line)}.body{padding:15px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-size:12px;font-weight:700;color:var(--muted)}.full{grid-column:1/-1}
+input,textarea,select,button{font:inherit}input,textarea,select{width:100%;margin-top:5px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}textarea{min-height:80px;resize:vertical}
+button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.primary{background:var(--navy);color:#fff}.secondary{background:#e9f0f7;color:var(--navy)}.calendar{background:var(--soft);color:#74500f;border:1px solid #ecd4a7}.danger{background:#fff;color:var(--danger);border:1px solid #ecc7c4}.hidden{display:none}
+.notice{margin-top:10px;padding:10px;border-radius:10px;background:var(--soft);border:1px solid #ecd4a7;color:#6f4d12;font-size:12px;line-height:1.4}
+.toolbar{padding:12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 140px;gap:8px}.toolbar input,.toolbar select{margin:0}
+.jobs{padding:12px;display:grid;gap:10px}.job{border:1px solid var(--line);border-radius:13px;padding:13px}.job.today{background:#fffdf8;border-color:#d9bd83}.job.done{opacity:.68}.top{display:flex;justify-content:space-between;gap:10px}.job h3{margin:0 0 4px;font-size:16px}.when{color:var(--navy);font-size:13px;font-weight:800}.meta,.notes,.rem{font-size:12px;margin-top:5px;color:var(--muted);line-height:1.45}.notes{background:#f7f9fc;padding:8px;border-radius:8px;white-space:pre-wrap}.rem{color:#77500d;font-weight:700}.price{font-weight:800;margin-top:7px}.status{font-size:11px;font-weight:800;background:#e9f0f7;color:var(--navy);border-radius:999px;padding:5px 8px;height:max-content}.actions{display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid #edf1f5;margin-top:10px;padding-top:10px}.actions select{margin:0;width:auto}.actions button{font-size:12px}.empty{text-align:center;color:var(--muted);padding:35px}
+@media(max-width:850px){.stats{grid-template-columns:1fr 1fr}.layout{grid-template-columns:1fr}}@media(max-width:600px){header,main{padding-left:12px;padding-right:12px}.brand h1{font-size:19px}.logo{font-size:9px}.stats{gap:8px}.stat b{font-size:17px}form{grid-template-columns:1fr}.full{grid-column:auto}.toolbar{grid-template-columns:1fr}.actions{display:grid;grid-template-columns:1fr 1fr}.actions select,.actions .calendar{grid-column:1/-1;width:100%}.actions button{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><div><h1>HM Security Job Scheduler</h1><p>Installations, service calls, quotes & reminders</p></div><div class="logo">HM SECURITY SOLUTIONS</div></div></header>
+<main class="wrap">
+<section class="stats">
+<div class="stat"><small>Upcoming jobs</small><b id="upcoming">0</b></div>
+<div class="stat"><small>Next booking</small><b id="next">None</b></div>
+<div class="stat"><small>Next reminder</small><b id="nextReminder">None</b></div>
+<div class="stat"><small>Booked value</small><b id="value">—</b></div>
+</section>
+<section class="layout">
+<div class="panel" id="formPanel"><h2 id="formTitle">Add new job</h2><div class="body">
+<form id="jobForm">
+<input type="hidden" id="editingId">
+<label>Customer name<input id="customer" placeholder="Customer name"></label>
+<label>Phone<input id="phone" inputmode="tel" placeholder="Phone number"></label>
+<label class="full">Job type<input id="type" required placeholder="e.g. 4-camera CCTV installation"></label>
+<label>Date<input id="date" type="date" required></label>
+<label>Time<input id="time" type="time"></label>
+<label>Price / quote<input id="price" type="number" min="0" step="1" placeholder="$"></label>
+<label>Status<select id="status"><option>Booked</option><option>Confirmed</option><option>Completed</option></select></label>
+<label>Reminder<select id="reminder"><option value="0">No reminder</option><option value="60">1 hour before</option><option value="180">3 hours before</option><option value="1440" selected>1 day before</option><option value="2880">2 days before</option><option value="10080">1 week before</option></select></label>
+<label>Job length<select id="duration"><option value="60">1 hour</option><option value="120" selected>2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option><option value="360">6 hours</option><option value="480">8 hours</option></select></label>
+<label class="full">Address / notes<textarea id="notes" placeholder="Address, equipment, special instructions..."></textarea></label>
+<div class="full" style="display:flex;gap:8px"><button class="primary" id="saveBtn" type="submit" style="flex:1">Add job</button><button class="secondary hidden" id="cancelEdit" type="button" style="flex:1">Cancel</button></div>
+</form>
+<div class="notice"><b>Reminder:</b> After saving a job, tap <b>Add to calendar</b>. The calendar file includes your selected alert so your phone can notify you even when this page is closed.</div>
+</div></div>
+<div class="panel"><h2>Schedule</h2><div class="toolbar"><input id="search" placeholder="Search customer, phone, job or notes"><select id="filter"><option value="all">All jobs</option><option>Booked</option><option>Confirmed</option><option>Completed</option></select></div><div class="jobs" id="jobs"></div></div>
+</section>
+</main>
+<script>
+var KEY="hm_security_jobs_v1";
+var defaultJobs=[{id:1,customer:"",type:"4MP 4-Camera Installation",date:"2026-09-30",time:"",phone:"",price:"",notes:"Customer booked. Add address and installation time when confirmed.",status:"Booked",reminderMinutes:1440,durationMinutes:120}];
+var jobs=JSON.parse(localStorage.getItem(KEY)||"null")||defaultJobs;
+jobs=jobs.map(function(j){j.status=j.status||"Booked";j.reminderMinutes=Number(j.reminderMinutes==null?1440:j.reminderMinutes);j.durationMinutes=Number(j.durationMinutes==null?120:j.durationMinutes);return j});
+function el(id){return document.getElementById(id)}function save(){localStorage.setItem(KEY,JSON.stringify(jobs))}
+function esc(s){return String(s==null?"":s).replace(/[&<>'"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]})}
+function eventDate(j){return new Date(j.date+"T"+(j.time||"09:00")+":00")}function reminderDate(j){var d=eventDate(j);d.setMinutes(d.getMinutes()-(Number(j.reminderMinutes)||0));return d}
+function fmtDate(s){if(!s)return "—";var p=s.split("-").map(Number);return new Intl.DateTimeFormat("en-CA",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(Date.UTC(p[0],p[1]-1,p[2])))}
+function fmtShort(s){if(!s)return "—";var p=s.split("-").map(Number);return new Intl.DateTimeFormat("en-CA",{month:"short",day:"numeric",timeZone:"UTC"}).format(new Date(Date.UTC(p[0],p[1]-1,p[2])))}
+function fmtTime(t){if(!t)return "Time TBD";var p=t.split(":").map(Number);return new Intl.DateTimeFormat("en-CA",{hour:"numeric",minute:"2-digit"}).format(new Date(2000,0,1,p[0],p[1]))}
+function money(v){var n=Number(v);return n?new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD",maximumFractionDigits:0}).format(n):""}
+function remLabel(m){m=Number(m)||0;if(!m)return "No reminder";if(m%10080===0)return (m/10080)+" week"+(m/10080===1?"":"s")+" before";if(m%1440===0)return (m/1440)+" day"+(m/1440===1?"":"s")+" before";if(m%60===0)return (m/60)+" hour"+(m/60===1?"":"s")+" before";return m+" min before"}
+function isToday(j){var d=new Date(),s=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");return j.date===s}
+function icsDate(d){return d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00"}
+function icsEscape(s){return String(s||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;")}
+function addCalendar(j){var start=eventDate(j),end=new Date(start.getTime()+(Number(j.durationMinutes)||120)*60000),title="HM Security - "+j.type+(j.customer?" - "+j.customer:""),desc=[j.customer?"Customer: "+j.customer:"",j.phone?"Phone: "+j.phone:"",j.notes||""].filter(Boolean).join("\n"),alarm=Number(j.reminderMinutes)>0?"BEGIN:VALARM\r\nTRIGGER:-PT"+Number(j.reminderMinutes)+"M\r\nACTION:DISPLAY\r\nDESCRIPTION:HM Security job reminder\r\nEND:VALARM\r\n":"",ics="BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//HM Security Solutions//Job Scheduler//EN\r\nBEGIN:VEVENT\r\nUID:"+j.id+"@hmsecurity.ca\r\nDTSTAMP:"+icsDate(new Date())+"\r\nDTSTART:"+icsDate(start)+"\r\nDTEND:"+icsDate(end)+"\r\nSUMMARY:"+icsEscape(title)+"\r\nDESCRIPTION:"+icsEscape(desc)+"\r\n"+alarm+"END:VEVENT\r\nEND:VCALENDAR",b=new Blob([ics],{type:"text/calendar;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="HM-Security-"+j.date+"-"+(j.customer||"Job")+".ics";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000)}
+function render(){var f=el("filter").value,q=el("search").value.trim().toLowerCase(),shown=jobs.filter(function(j){return f==="all"||j.status===f}).filter(function(j){return !q||[j.customer,j.phone,j.type,j.notes,j.date].some(function(v){return String(v||"").toLowerCase().includes(q)})}).sort(function(a,b){return eventDate(a)-eventDate(b)});
+el("jobs").innerHTML=shown.length?shown.map(function(j){return '<div class="job '+(isToday(j)?"today ":"")+(j.status==="Completed"?"done":"")+'"><div class="top"><div><h3>'+esc(j.type)+'</h3><div class="when">'+fmtDate(j.date)+' • '+esc(fmtTime(j.time))+'</div>'+(j.customer?'<div class="meta"><b>Customer:</b> '+esc(j.customer)+'</div>':"")+(j.phone?'<div class="meta"><b>Phone:</b> '+esc(j.phone)+'</div>':"")+(j.notes?'<div class="notes">'+esc(j.notes)+'</div>':"")+(j.price?'<div class="price">'+money(j.price)+'</div>':"")+'<div class="rem">🔔 '+remLabel(j.reminderMinutes)+'</div></div><span class="status">'+esc(j.status)+'</span></div><div class="actions"><select data-status="'+j.id+'">'+["Booked","Confirmed","Completed"].map(function(s){return '<option '+(s===j.status?"selected":"")+'>'+s+'</option>'}).join("")+'</select><button class="calendar" data-cal="'+j.id+'">🔔 Add to calendar</button><button class="secondary" data-edit="'+j.id+'">Edit</button><button class="danger" data-del="'+j.id+'">Remove</button></div></div>'}).join(""):'<div class="empty">No jobs found.</div>';
+var today=new Date();today.setHours(0,0,0,0);var up=jobs.filter(function(j){return j.status!=="Completed"&&eventDate(j)>=today}).sort(function(a,b){return eventDate(a)-eventDate(b)});el("upcoming").textContent=up.length;el("next").textContent=up.length?fmtShort(up[0].date):"None";var wr=up.filter(function(j){return Number(j.reminderMinutes)>0}).sort(function(a,b){return reminderDate(a)-reminderDate(b)});el("nextReminder").textContent=wr.length?fmtShort(wr[0].date):"None";var total=up.reduce(function(s,j){return s+(Number(j.price)||0)},0);el("value").textContent=total?money(total):"—";
+document.querySelectorAll("[data-status]").forEach(function(x){x.onchange=function(e){var j=jobs.find(function(z){return z.id===Number(e.target.dataset.status)});if(j){j.status=e.target.value;save();render()}}});document.querySelectorAll("[data-cal]").forEach(function(x){x.onclick=function(e){var j=jobs.find(function(z){return z.id===Number(e.target.dataset.cal)});if(j)addCalendar(j)}});document.querySelectorAll("[data-del]").forEach(function(x){x.onclick=function(e){if(confirm("Remove this job?")){jobs=jobs.filter(function(z){return z.id!==Number(e.target.dataset.del)});save();render()}}});document.querySelectorAll("[data-edit]").forEach(function(x){x.onclick=function(e){startEdit(Number(e.target.dataset.edit))}})}
+function startEdit(id){var j=jobs.find(function(x){return x.id===id});if(!j)return;["customer","phone","type","date","time","price","status","notes"].forEach(function(k){el(k).value=j[k]||""});el("reminder").value=String(j.reminderMinutes);el("duration").value=String(j.durationMinutes);el("editingId").value=j.id;el("formTitle").textContent="Edit job";el("saveBtn").textContent="Save changes";el("cancelEdit").classList.remove("hidden");el("formPanel").scrollIntoView({behavior:"smooth"})}
+function resetForm(){el("jobForm").reset();el("editingId").value="";el("status").value="Booked";el("reminder").value="1440";el("duration").value="120";el("formTitle").textContent="Add new job";el("saveBtn").textContent="Add job";el("cancelEdit").classList.add("hidden")}
+el("jobForm").onsubmit=function(e){e.preventDefault();var id=Number(el("editingId").value),d={customer:el("customer").value.trim(),phone:el("phone").value.trim(),type:el("type").value.trim(),date:el("date").value,time:el("time").value,price:el("price").value,status:el("status").value,reminderMinutes:Number(el("reminder").value),durationMinutes:Number(el("duration").value),notes:el("notes").value.trim()};if(id){var i=jobs.findIndex(function(x){return x.id===id});if(i>=0)jobs[i]=Object.assign({},jobs[i],d)}else jobs.push(Object.assign({id:Date.now()},d));save();resetForm();render()};el("cancelEdit").onclick=resetForm;el("filter").onchange=render;el("search").oninput=render;save();render();
+</script>
+</body></html>
