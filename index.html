@@ -77,3 +77,4 @@ function resetForm(){el("jobForm").reset();el("editingId").value="";el("status")
 el("jobForm").onsubmit=function(e){e.preventDefault();var id=Number(el("editingId").value),d={customer:el("customer").value.trim(),phone:el("phone").value.trim(),type:el("type").value.trim(),date:el("date").value,time:el("time").value,price:el("price").value,status:el("status").value,reminderMinutes:Number(el("reminder").value),durationMinutes:Number(el("duration").value),notes:el("notes").value.trim()};if(id){var i=jobs.findIndex(function(x){return x.id===id});if(i>=0)jobs[i]=Object.assign({},jobs[i],d)}else jobs.push(Object.assign({id:Date.now()},d));save();resetForm();render()};el("cancelEdit").onclick=resetForm;el("filter").onchange=render;el("search").oninput=render;save();render();
 </script>
 </body></html>
+<!-- Vercel redeploy trigger -->
